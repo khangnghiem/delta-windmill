@@ -1,8 +1,9 @@
 import scrapy
-from scrapy_playwright.page import PageMethod 
+from scrapy_playwright.page import PageMethod
 from playwright.sync_api import Page
 
 from ..items import JobProspectItem, JobProspectLoader
+
 
 class VietnamworksSpider(scrapy.Spider):
     name = "vietnamworks"
@@ -16,10 +17,12 @@ class VietnamworksSpider(scrapy.Spider):
                 callback=self.parse,
                 meta={
                     'playwright': True,
-                    'playwright_timeout': 60000,
+                    "playwright_page_kwargs": {"timeout": 120000},  # 60 seconds for this specific request
+                    'playwright_timeout': 120000,
                     'playwright_page_methods': [
-                        PageMethod('evaluate', 'window.scrollBy(0, document.body.scrollHeight)'),
                         PageMethod('wait_for_timeout', 1000),
+                        PageMethod('evaluate', 'window.scrollBy(0, document.body.scrollHeight)'),
+                        PageMethod('wait_for_timeout', 2000),
                     ],
                 },
             )
@@ -30,19 +33,20 @@ class VietnamworksSpider(scrapy.Spider):
         links = response.xpath(
             "/html/body/div[1]/div[2]/div/div[1]/main/div/div/div/div/div[1]/div[1]/div[3]/div/div/div/div/div[2]/div[1]/div/div/div/h2/a/@href"
         ).getall()
-        for link in links[:3]:
+        for link in links:
             yield scrapy.Request(
                 url=response.urljoin(link),
                 callback=self.parse_job,
                 meta={
                     'playwright': True,
-                    'playwright_timeout': 60000,
+                    'playwright_timeout': 120000,
+                    "playwright_page_kwargs": {"timeout": 120000},  # 60 seconds for this specific request
                     "playwright_include_page": True,
                     'playwright_page_methods': [
                         # PageMethod("wait_for_timeout", 5000),
                         # PageMethod("wait_for_selector", 'button[aria-label="Xem thêm"]'),
                         # PageMethod("click", 'button[aria-label="Xem thêm"]'),
-                        PageMethod("wait_for_timeout", 2000),
+                        PageMethod("wait_for_timeout", 3000),
                     ],
                 },
             )
@@ -89,7 +93,9 @@ class VietnamworksSpider(scrapy.Spider):
         # print(f"Test: {response.css('button[aria-label=\"Xem thêm\"]').getall()}")
         # print(f"Test: {response.css('button[aria-label="Xem thêm"]').getall()}")
 
-        job_level = "".join(response.xpath("/html/body/main/div/main/div[2]/div/div/div/div[1]/div/div[1]/div/div[6]/div[1]/div[2]/div/div[2]/p//text()").getall())
+        job_level = "".join(
+            response.xpath("/html/body/main/div/main/div[2]/div/div/div/div[1]/div/div[1]/div/div[6]/div[1]/div[2]/div/div[2]/p//text()").getall()
+        )
         job_skills = "".join(
             response.xpath("/html/body/main/div/main/div[2]/div/div/div/div[1]/div/div[1]/div/div[6]/div[1]/div[4]/div/div[2]/p//text()").getall()
         )

@@ -11,6 +11,7 @@ BOT_NAME = "job_prospects"
 
 SPIDER_MODULES = ["job_prospects.spiders"]
 NEWSPIDER_MODULE = "job_prospects.spiders"
+PLAYWRIGHT_DEFAULT_NAVIGATION_TIMEOUT = 120000 # 60 seconds
 
 
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
@@ -37,8 +38,8 @@ FEED_STORE_EMPTY = False
 # See also autothrottle settings and docs
 # DOWNLOAD_DELAY = 3
 # The download delay setting will honor only one of:
-CONCURRENT_REQUESTS_PER_DOMAIN = 16
-CONCURRENT_REQUESTS_PER_IP = 16
+CONCURRENT_REQUESTS_PER_DOMAIN = 8
+CONCURRENT_REQUESTS_PER_IP = 8
 
 DOWNLOADER_MIDDLEWARES = {
     #    "company_reviews.middlewares.CompanyReviewsDownloaderMiddleware": 543,
