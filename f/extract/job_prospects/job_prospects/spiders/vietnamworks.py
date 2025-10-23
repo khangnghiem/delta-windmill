@@ -8,7 +8,7 @@ from ..items import JobProspectItem, JobProspectLoader
 class VietnamworksSpider(scrapy.Spider):
     name = "vietnamworks"
     allowed_domains = ["www.vietnamworks.com"]
-    start_urls = [f"https://www.vietnamworks.com/viec-lam?page={i}" for i in range(1, 200)]
+    start_urls = [f"https://www.vietnamworks.com/viec-lam?page={i}" for i in range(1, 3)]
 
     def start_requests(self):
         for url in self.start_urls:
@@ -17,12 +17,9 @@ class VietnamworksSpider(scrapy.Spider):
                 callback=self.parse,
                 meta={
                     'playwright': True,
-                    "playwright_page_kwargs": {"timeout": 120000},  # 60 seconds for this specific request
-                    'playwright_timeout': 120000,
                     'playwright_page_methods': [
-                        PageMethod('wait_for_timeout', 1000),
                         PageMethod('evaluate', 'window.scrollBy(0, document.body.scrollHeight)'),
-                        PageMethod('wait_for_timeout', 2000),
+                        PageMethod('wait_for_timeout', 1000),
                     ],
                 },
             )
@@ -33,27 +30,26 @@ class VietnamworksSpider(scrapy.Spider):
         links = response.xpath(
             "/html/body/div[1]/div[2]/div/div[1]/main/div/div/div/div/div[1]/div[1]/div[3]/div/div/div/div/div[2]/div[1]/div/div/div/h2/a/@href"
         ).getall()
+        self.logger.info(f"{len(links)=} links found on {response.url}")
+
         for link in links:
             yield scrapy.Request(
                 url=response.urljoin(link),
                 callback=self.parse_job,
                 meta={
                     'playwright': True,
-                    'playwright_timeout': 120000,
-                    "playwright_page_kwargs": {"timeout": 120000},  # 60 seconds for this specific request
-                    "playwright_include_page": True,
                     'playwright_page_methods': [
                         # PageMethod("wait_for_timeout", 5000),
                         # PageMethod("wait_for_selector", 'button[aria-label="Xem thêm"]'),
                         # PageMethod("click", 'button[aria-label="Xem thêm"]'),
-                        PageMethod("wait_for_timeout", 3000),
+                        PageMethod("wait_for_timeout", 2000),
                     ],
                 },
             )
 
-    def parse_job(self, response):
-        # with open('/Users/khangnghiem/Downloads/response_2.html', 'w', encoding='utf-8') as f:
-        #     f.write(response.text)
+    async def parse_job(self, response):
+        with open('/Users/khangnghiem/Downloads/response_2.html', 'w', encoding='utf-8') as f:
+            f.write(response.text)
         company_name = response.xpath("/html/body/main/div/main/div[2]/div/div/div/div[2]/div/div[1]/div[2]/a/text()").get()
         company_address = response.xpath("/html/body/main/div/main/div[2]/div/div/div/div[2]/div/div[1]/div[2]/div/div[1]/div[2]/p/text()").get()
         company_map_link = response.xpath("/html/body/main/div/main/div[2]/div/div/div/div[2]/div/div[1]/div[2]/div/div[1]/div[2]/a/@href").get()

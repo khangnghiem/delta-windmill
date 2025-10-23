@@ -1,1 +1,1 @@
-scrapy crawl vietnamworks -o 
+scrapy crawl vietnamworks -o vietnamworks.json
