@@ -8,8 +8,10 @@ from ..items import JobProspectItem, JobProspectLoader
 class VietnamworksSpider(scrapy.Spider):
     name = "vietnamworks"
     allowed_domains = ["www.vietnamworks.com"]
-    start_urls = [f"https://www.vietnamworks.com/viec-lam?page={i}" for i in range(1, 3)]
-
+    start_urls = [f"https://www.vietnamworks.com/viec-lam?page={i}" for i in range(1, 180)]
+    # custom_settings = {
+    #     'CONCURRENT_REQUESTS': 1
+    # }
     def start_requests(self):
         for url in self.start_urls:
             yield scrapy.Request(
@@ -47,9 +49,13 @@ class VietnamworksSpider(scrapy.Spider):
                 },
             )
 
-    async def parse_job(self, response):
-        with open('/Users/khangnghiem/Downloads/response_2.html', 'w', encoding='utf-8') as f:
+    def parse_job(self, response):
+        job_id = response.url.split("vietnamworks.com/")[1].split("?")[0]
+        self.logger.info(f"Parsing job {job_id} from {response.url}")
+
+        with open(f'/Users/khangnghiem/delta-windmill/f/extract/job_prospects/job_prospects/tmp/response_{job_id}.html', 'w', encoding='utf-8') as f:
             f.write(response.text)
+
         company_name = response.xpath("/html/body/main/div/main/div[2]/div/div/div/div[2]/div/div[1]/div[2]/a/text()").get()
         company_address = response.xpath("/html/body/main/div/main/div[2]/div/div/div/div[2]/div/div[1]/div[2]/div/div[1]/div[2]/p/text()").get()
         company_map_link = response.xpath("/html/body/main/div/main/div[2]/div/div/div/div[2]/div/div[1]/div[2]/div/div[1]/div[2]/a/@href").get()
